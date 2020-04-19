@@ -33,9 +33,10 @@ export const Editor = (): ReactElement => {
       })
       .then((response) => {
         setPath(response.data);
-        setCenter(response.data[0]); // should be set to the center of the piste
+        // should be set to the center of the piste
+        setCenter(response.data?.[0] || { lat: 62.4134629, lng: 13.9759148 });
       });
-  }, []);
+  }, [resort, piste]);
 
   useEffect(() => {
     const undo = (e: KeyboardEvent) => {

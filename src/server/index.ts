@@ -21,12 +21,16 @@ app.get(
   ) => {
     const { resort, piste } = req.query;
 
-    const coordinates = await fs.readFile(
-      `./src/server/data/${resort}-${piste}-coordinates.json`,
-      'utf-8',
-    );
+    try {
+      const coordinates = await fs.readFile(
+        `./src/server/data/${resort}-${piste}-coordinates.json`,
+        'utf-8',
+      );
 
-    res.json(JSON.parse(coordinates));
+      res.json(JSON.parse(coordinates));
+    } catch (e) {
+      res.json([]);
+    }
   },
 );
 
