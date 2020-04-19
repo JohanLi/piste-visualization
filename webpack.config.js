@@ -3,6 +3,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const Dotenv = require('dotenv-webpack');
 
 let cssHmr = false;
 let cssFilename = 'styles-[contenthash].css';
@@ -68,7 +69,8 @@ module.exports = (env = {}) => {
         template: './src/index.html',
         inject: 'body',
       }),
-      new MiniCssExtractPlugin({ filename: cssFilename })
+      new MiniCssExtractPlugin({ filename: cssFilename }),
+      new Dotenv(),
     ],
     ...additionalClientConfig,
   };

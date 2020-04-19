@@ -124,7 +124,7 @@ export const Editor = (): ReactElement => {
   }
 
   return (
-    <LoadScriptNext googleMapsApiKey="AIzaSyCJP-vIkaTSg43JV2tmBfWZdzD58rHSehE">
+    <LoadScriptNext googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}>
       <GoogleMap
         center={center}
         mapContainerStyle={{
