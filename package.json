@@ -1,0 +1,105 @@
+{
+  "name": "piste-visualization",
+  "version": "0.1.0",
+  "description": "Create and edit pistes via Google Maps and visualize them",
+  "scripts": {
+    "start": "webpack-dev-server --hot --env.development",
+    "build": "rm -rf ./build && webpack --mode production",
+    "test": "jest --env=node"
+  },
+  "author": "Johan Li",
+  "license": "ISC",
+  "dependencies": {
+    "@react-google-maps/api": "^1.8.6",
+    "axios": "^0.19.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/polyfill": "^7.8.7",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-react": "^7.9.4",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/googlemaps": "^3.39.3",
+    "@types/jest": "^25.1.4",
+    "@types/react": "^16.9.27",
+    "@types/react-dom": "^16.9.5",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.4.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-react": "^7.19.0",
+    "eslint-plugin-react-hooks": "^3.0.0",
+    "file-loader": "^6.0.0",
+    "html-webpack-plugin": "^4.0.3",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^25.2.3",
+    "lint-staged": "^10.0.10",
+    "mini-css-extract-plugin": "^0.9.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "^2.0.2",
+    "react-hot-loader": "^4.12.20",
+    "react-test-renderer": "^16.13.1",
+    "ts-jest": "^25.2.1",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  },
+  "pre-commit": [
+    "lint-staged",
+    "test",
+    "test:lint",
+    "test:tsc"
+  ],
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint",
+      "react-hooks"
+    ],
+    "extends": [
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react/recommended"
+    ],
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-react",
+      "@babel/preset-typescript",
+      [
+        "@babel/preset-env",
+        {
+          "targets": "defaults"
+        }
+      ]
+    ],
+    "plugins": [
+      "react-hot-loader/babel"
+    ],
+    "compact": false
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "moduleNameMapper": {
+      "\\.css$": "identity-obj-proxy"
+    }
+  }
+}
