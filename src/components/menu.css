@@ -1,0 +1,10 @@
+.menu {
+  width: 200px;
+  flex-grow: 0;
+  padding: 20px;
+}
+
+.menu ul {
+  padding-left: 20px;
+}
+
