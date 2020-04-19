@@ -40,7 +40,9 @@ export const Menu = (): ReactElement => {
 
   return (
     <div className={styles.menu}>
-      <Helmet title={`${currentPiste?.name}, ${currentResort?.name}`} />
+      {currentPiste && (
+        <Helmet title={`${currentPiste?.name}, ${currentResort?.name}`} />
+      )}
       <ul>
         {resorts.map((resort) => {
           const piste = resort.pistes.map((p) => (
