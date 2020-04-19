@@ -152,7 +152,7 @@ export const Editor = (): ReactElement => {
       <GoogleMap
         center={center}
         mapContainerStyle={{
-          width: '100%',
+          flexGrow: 1,
           height: '100vh',
         }}
         zoom={15}

@@ -43,6 +43,7 @@ export const Menu = (): ReactElement => {
       {currentPiste && (
         <Helmet title={`${currentPiste?.name}, ${currentResort?.name}`} />
       )}
+      <Link to="/graph">Graph</Link>
       <ul>
         {resorts.map((resort) => {
           const piste = resort.pistes.map((p) => (
