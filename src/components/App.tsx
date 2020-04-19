@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { Switch, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
 import { Menu } from './Menu';
@@ -14,11 +14,10 @@ export const App = (): ReactElement => (
       defaultTitle="Piste Visualization"
     />
     <div className={styles.app}>
-      <Switch>
-        <Route path="/" exact component={Menu} />
-        <Route path="/:resort/:piste" component={Menu} />
-      </Switch>
-      <Editor />
+      <Route path="/:resort?/:piste?">
+        <Menu />
+        <Editor />
+      </Route>
     </div>
   </>
 );

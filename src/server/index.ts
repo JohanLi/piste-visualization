@@ -1,9 +1,11 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { promises as fs } from 'fs';
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 interface Coordinate {
   lng: number;
@@ -11,6 +13,23 @@ interface Coordinate {
 }
 
 // TODO: database
+app.get(
+  '/piste',
+  async (
+    req: Request<{}, {}, {}, { resort: string; piste: string }>,
+    res: Response,
+  ) => {
+    const { resort, piste } = req.query;
+
+    const coordinates = await fs.readFile(
+      `./src/server/data/${resort}-${piste}-coordinates.json`,
+      'utf-8',
+    );
+
+    res.json(JSON.parse(coordinates));
+  },
+);
+
 app.post(
   '/piste',
   async (

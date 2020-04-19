@@ -1,24 +1,41 @@
 import React, { ReactElement, useState, useEffect } from 'react';
 import { GoogleMap, LoadScriptNext, Polyline } from '@react-google-maps/api';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 interface Coordinate {
   lng: number;
   lat: number;
 }
 
-const center = { lat: 62.4134629, lng: 13.9759148 };
-
-const pathz: Coordinate[] = [{ lat: 62.414755, lng: 13.991664 }];
-
 const cmdOrCtrl = (e: KeyboardEvent) => e.ctrlKey || e.metaKey;
 
 export const Editor = (): ReactElement => {
-  const [path, setPath] = useState<Coordinate[]>(pathz);
+  const { resort, piste } = useParams<{ resort: string; piste: string }>();
+
+  const [center, setCenter] = useState<Coordinate>();
+  const [path, setPath] = useState<Coordinate[]>([]);
   const [pathHistory, setPathHistory] = useState<Coordinate[][]>([]);
 
   const [polylineRef, setPolylineRef] = useState<google.maps.Polyline>();
 
   const onLoad = (polygon: google.maps.Polyline) => setPolylineRef(polygon);
+
+  useEffect(() => {
+    axios
+      .request<Coordinate[]>({
+        method: 'get',
+        url: 'http://localhost:8081/piste',
+        params: {
+          resort,
+          piste,
+        },
+      })
+      .then((response) => {
+        setPath(response.data);
+        setCenter(response.data[0]); // should be set to the center of the piste
+      });
+  }, []);
 
   useEffect(() => {
     const undo = (e: KeyboardEvent) => {
@@ -34,13 +51,19 @@ export const Editor = (): ReactElement => {
       setPathHistory(pathHistory.slice(0, -1));
     };
 
-    const save = (e: KeyboardEvent) => {
+    const save = async (e: KeyboardEvent) => {
       if (!(e.key === 'x' && cmdOrCtrl(e))) {
         return;
       }
 
-      navigator.clipboard.writeText(JSON.stringify(path)).then(() => {
-        return;
+      await axios.request({
+        method: 'post',
+        url: 'http://localhost:8081/piste',
+        data: {
+          resort,
+          piste,
+          coordinates: path,
+        },
       });
     };
 
@@ -51,7 +74,7 @@ export const Editor = (): ReactElement => {
       window.removeEventListener('keydown', undo);
       window.removeEventListener('keydown', save);
     };
-  }, [pathHistory]);
+  }, [path, pathHistory]);
 
   const setPath2 = (newPath: Coordinate[]) => {
     if (pathHistory.length >= 5) {
