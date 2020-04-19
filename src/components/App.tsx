@@ -12,6 +12,8 @@ const center = { lat: 62.4134629, lng: 13.9759148 };
 
 const pathz: Coordinate[] = [{"lat":62.414755,"lng":13.991664}];
 
+const cmdOrCtrl = (e: KeyboardEvent) => e.ctrlKey || e.metaKey;
+
 const App = (): ReactElement => {
   const [path, setPath] = useState<Coordinate[]>(pathz);
   const [pathHistory, setPathHistory] = useState<Coordinate[][]>([]);
@@ -22,7 +24,7 @@ const App = (): ReactElement => {
 
   useEffect(() => {
     const undo = (e: KeyboardEvent) => {
-      if (!(e.key === 'z' && e.ctrlKey)) {
+      if (!(e.key === 'z' && cmdOrCtrl(e))) {
         return;
       }
 
@@ -35,7 +37,7 @@ const App = (): ReactElement => {
     };
 
     const save = (e: KeyboardEvent) => {
-      if (!(e.key === 'x' && e.ctrlKey)) {
+      if (!(e.key === 'x' && cmdOrCtrl(e))) {
         return;
       }
 
