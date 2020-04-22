@@ -41,7 +41,7 @@ export const Menu = (): ReactElement => {
   return (
     <div className={styles.menu}>
       {currentPiste && (
-        <Helmet title={`${currentPiste?.name}, ${currentResort?.name}`} />
+        <Helmet title={`${currentPiste?.name} (${currentResort?.name})`} />
       )}
       <Link to="/graph">Graph</Link>
       <ul>
