@@ -3,10 +3,7 @@ import { GoogleMap, LoadScriptNext, Polyline } from '@react-google-maps/api';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
-interface Coordinate {
-  lng: number;
-  lat: number;
-}
+import { Coordinate } from '../types';
 
 const cmdOrCtrl = (e: KeyboardEvent) => e.ctrlKey || e.metaKey;
 

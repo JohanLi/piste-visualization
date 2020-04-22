@@ -2,15 +2,12 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { promises as fs } from 'fs';
 
+import { Coordinate } from '../types';
+
 const app = express();
 
 app.use(express.json());
 app.use(cors());
-
-interface Coordinate {
-  lng: number;
-  lat: number;
-}
 
 // TODO: database
 app.get(
