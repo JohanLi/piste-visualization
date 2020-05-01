@@ -10,7 +10,7 @@ import {
   updateResort,
 } from './repository';
 import { Coordinate, Graph } from '../types';
-import { slugify } from './utils';
+import { createSlug } from './utils';
 
 const app = express();
 
@@ -68,15 +68,15 @@ app.put(
   ) => {
     let { id } = req.body;
     const { name } = req.body;
-    const urlKey = slugify(name);
+    const slug = createSlug(name);
 
     if (!id) {
-      id = await insertResort({ name, urlKey });
+      id = await insertResort({ name, slug });
     } else {
-      await updateResort({ id, name, urlKey });
+      await updateResort({ id, name, slug });
     }
 
-    res.json({ id, name, urlKey });
+    res.json({ id, name, slug });
   },
 );
 
@@ -100,15 +100,15 @@ app.put(
     const { resortUrlKey, name, path, graph } = req.body;
 
     const resortId = await resortByUrlKey(resortUrlKey);
-    const urlKey = slugify(name);
+    const slug = createSlug(name);
 
     if (!id) {
-      id = await insertPiste({ resortId, name, urlKey, path, graph });
+      id = await insertPiste({ resortId, name, slug, path, graph });
     } else {
-      await updatePiste({ id, resortId, name, urlKey, path, graph });
+      await updatePiste({ id, resortId, name, slug, path, graph });
     }
 
-    res.json({ id, resortId, name, urlKey, path, graph });
+    res.json({ id, resortId, name, slug, path, graph });
   },
 );
 

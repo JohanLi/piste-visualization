@@ -4,11 +4,11 @@ CREATE TABLE resorts
         CONSTRAINT resorts_pk
             PRIMARY KEY,
     name    TEXT,
-    url_key TEXT
+    slug    TEXT
 );
 
-CREATE UNIQUE INDEX resorts_url_key_uindex
-    ON resorts (url_key);
+CREATE UNIQUE INDEX resorts_slug_uindex
+    ON resorts (slug);
 
 CREATE TABLE pistes
 (
@@ -19,10 +19,10 @@ CREATE TABLE pistes
         CONSTRAINT pistes_resorts_id_fk
             REFERENCES resorts,
     name      TEXT,
-    url_key   TEXT,
-    path      JSON,
-    graph     JSON
+    slug      TEXT,
+    path      JSONB,
+    graph     JSONB
 );
 
-CREATE UNIQUE INDEX pistes_url_key_uindex
-    ON pistes (url_key);
+CREATE UNIQUE INDEX pistes_slug_uindex
+    ON pistes (slug);

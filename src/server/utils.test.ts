@@ -1,10 +1,10 @@
-import { slugify } from './utils';
+import { createSlug } from './utils';
 
 test('slugify', () => {
-  expect(slugify('Björnrike')).toEqual('bjornrike');
-  expect(slugify('Åre')).toEqual('are');
-  expect(slugify('Romme Alpin')).toEqual('romme-alpin');
-  expect(slugify('4 Vallées')).toEqual('4-vallees');
-  expect(slugify('St. Anton')).toEqual('st-anton');
-  expect(slugify('ficTION&&al--Resort')).toEqual('fictional-resort');
+  expect(createSlug('Björnrike')).toEqual('bjornrike');
+  expect(createSlug('Åre')).toEqual('are');
+  expect(createSlug('Romme Alpin')).toEqual('romme-alpin');
+  expect(createSlug('4 Vallées')).toEqual('4-vallees');
+  expect(createSlug('St. Anton')).toEqual('st-anton');
+  expect(createSlug('ficTION&&al--Resort')).toEqual('fictional-resort');
 });
