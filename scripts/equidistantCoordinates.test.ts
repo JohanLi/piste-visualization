@@ -2,10 +2,13 @@ import { equidistantCoordinates } from './equidistantCoordinates';
 
 test('Able to create a series of coordinates of given distance between them', () => {
   expect(
-    equidistantCoordinates([
-      { lat: 63.41505637188981, lng: 13.065576196801292 },
-      { lat: 63.414585829580325, lng: 13.06587123979293 },
-    ]),
+    equidistantCoordinates(
+      [
+        { lat: 63.41505637188981, lng: 13.065576196801292 },
+        { lat: 63.414585829580325, lng: 13.06587123979293 },
+      ],
+      2,
+    ),
   ).toEqual([
     { lat: 63.41505637188981, lng: 13.065576196801294 },
     { lat: 63.41503905436931, lng: 13.065587055542155 },

@@ -9,8 +9,11 @@ import {
   updatePiste,
   updateResort,
 } from './repository';
+import { cache } from './database';
 import { Coordinate, Graph } from '../types';
 import { createSlug } from './utils';
+import { equidistantCoordinates } from '../../scripts/equidistantCoordinates';
+import { altitudeAt, WGS84toSWEREF99TM } from '../../scripts/lib/lantmateriet';
 
 const app = express();
 
@@ -91,16 +94,42 @@ app.put(
         resortUrlKey: string;
         name: string;
         path: Coordinate[];
-        graph: Graph[];
       }
     >,
     res: Response,
   ) => {
     let { id } = req.body;
-    const { resortUrlKey, name, path, graph } = req.body;
-
+    const { resortUrlKey, name, path } = req.body;
     const resortId = await resortByUrlKey(resortUrlKey);
+
     const slug = createSlug(name);
+
+    const graph: Graph[] = [];
+    const increment = 2; // the resolution of Lantmäteriet's altitude data
+    let totalDistance = 0;
+
+    const equidistantPath = equidistantCoordinates(path, increment);
+
+    for (const coordinate of equidistantPath) {
+      const altitudeKey = `altitude:${coordinate.lat}:${coordinate.lng}`;
+      const altitudeCache = await cache.get(altitudeKey);
+      let altitude = 0;
+
+      if (altitudeCache === null) {
+        const swerefCoordinate = await WGS84toSWEREF99TM(coordinate);
+        altitude = await altitudeAt(swerefCoordinate);
+        await cache.set(altitudeKey, altitude);
+      } else {
+        altitude = Number(altitudeCache);
+      }
+
+      graph.push({
+        x: totalDistance,
+        y: altitude,
+      });
+
+      totalDistance += increment;
+    }
 
     if (!id) {
       id = await insertPiste({ resortId, name, slug, path, graph });

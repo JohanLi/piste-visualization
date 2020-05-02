@@ -9,7 +9,7 @@ import { Coordinate } from '../src/types';
 // TODO: consider a distance of 5 and an increment of 2. Coordinate after 4 is not generated – is this OK?
 export const equidistantCoordinates = (
   coordinates: Coordinate[],
-  increment = 2,
+  increment: number,
 ): Coordinate[] => {
   const equidistantCoordinates: Coordinate[] = [];
 

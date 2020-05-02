@@ -8,10 +8,21 @@ services:
       - postgres-data:/var/lib/postgresql/data
     env_file:
       - .env
+  cache:
+    image: redis:6.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: "redis-server --appendonly yes"
 
 volumes:
   postgres-data:
     external: true
+  redis-data:
+    external: true
 
 # https://github.com/docker/for-win/issues/445
 # docker volume create --name postgres-data -d local
+
+# docker exec -it #id sh

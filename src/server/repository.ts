@@ -1,4 +1,4 @@
-import { database } from './database';
+import { db } from './database';
 import { Coordinate, Graph } from '../types';
 
 export interface Resort {
@@ -17,7 +17,7 @@ export interface Piste {
 }
 
 export const resortByUrlKey = async (slug: string): Promise<number> => {
-  const result = await database.query<{ id: number }>(
+  const result = await db.query<{ id: number }>(
     `
     SELECT id
     FROM resorts
@@ -32,7 +32,7 @@ export const resortByUrlKey = async (slug: string): Promise<number> => {
 export const insertResort = async (resort: Resort): Promise<number> => {
   const { name, slug } = resort;
 
-  const result = await database.query<{ id: number }>(
+  const result = await db.query<{ id: number }>(
     `
     INSERT INTO resorts (name, slug)
     VALUES ($1, $2)
@@ -47,7 +47,7 @@ export const insertResort = async (resort: Resort): Promise<number> => {
 export const updateResort = async (resort: Resort): Promise<boolean> => {
   const { id, name, slug } = resort;
 
-  const result = await database.query(
+  const result = await db.query(
     `
     UPDATE resorts
     SET name = $2, slug = $3
@@ -62,7 +62,7 @@ export const updateResort = async (resort: Resort): Promise<boolean> => {
 export const insertPiste = async (piste: Piste): Promise<number> => {
   const { resortId, name, slug, path, graph } = piste;
 
-  const result = await database.query<{ id: number }>(
+  const result = await db.query<{ id: number }>(
     `
     INSERT INTO pistes (resort_id, name, slug, path, graph)
     VALUES ($1, $2, $3, $4, $5)
@@ -77,7 +77,7 @@ export const insertPiste = async (piste: Piste): Promise<number> => {
 export const updatePiste = async (piste: Piste): Promise<boolean> => {
   const { id, resortId, name, slug, path, graph } = piste;
 
-  const result = await database.query<{ id: number }>(
+  const result = await db.query<{ id: number }>(
     `
     UPDATE pistes
     SET resort_id = $2, name = $3, slug = $4, path = $5, graph = $6
