@@ -16,7 +16,7 @@ export interface Piste {
   graph: Graph[];
 }
 
-export const resortsAndPistes = async (): Promise<
+export const getResorts = async (): Promise<
   {
     name: string;
     slug: string;
@@ -111,4 +111,23 @@ export const updatePiste = async (piste: Piste): Promise<boolean> => {
   );
 
   return Boolean(result.rowCount);
+};
+
+export const getGraph = async (
+  pisteSlugs: string[],
+): Promise<{ name: string; slug: string; graph: Graph[] }[]> => {
+  const result = await db.query(
+    `
+    SELECT name, slug, graph
+    FROM pistes
+    WHERE slug = ANY ($1)
+  `,
+    [pisteSlugs],
+  );
+
+  return result.rows.map((row) => ({
+    name: row.name,
+    slug: row.slug,
+    graph: row.graph,
+  }));
 };

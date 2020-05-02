@@ -2,10 +2,11 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 
 import {
+  getGraph,
   insertPiste,
   insertResort,
   pisteBySlug,
-  resortsAndPistes,
+  getResorts,
   updatePiste,
   updateResort,
 } from './repository';
@@ -22,7 +23,7 @@ app.use(cors());
 
 app.get('/resort', async (_req: Request, res: Response) => {
   try {
-    const resorts = (await resortsAndPistes()).map((resort) => {
+    const resorts = (await getResorts()).map((resort) => {
       const names = resort.pisteNames.split(',');
       const slugs = resort.pisteSlugs.split(',');
 
@@ -130,6 +131,16 @@ app.put(
     }
 
     res.json({ id, resortId, name, slug, path, graph });
+  },
+);
+
+app.get(
+  '/graph',
+  async (req: Request<{}, {}, {}, { pisteSlugs: string }>, res: Response) => {
+    const { pisteSlugs } = req.query;
+    const graph = await getGraph(pisteSlugs.split(','));
+
+    res.json(graph);
   },
 );
 
