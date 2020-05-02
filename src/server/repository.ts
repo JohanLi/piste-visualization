@@ -16,23 +16,34 @@ export interface Piste {
   graph: Graph[];
 }
 
-export const resortByUrlKey = async (slug: string): Promise<number> => {
-  const result = await db.query<{ id: number }>(
+export const resortsAndPistes = async (): Promise<
+  {
+    name: string;
+    slug: string;
+    pisteNames: string;
+    pisteSlugs: string;
+  }[]
+> => {
+  const result = await db.query(
     `
-    SELECT id
-    FROM resorts
-    WHERE slug = $1
+    SELECT
+      r.name,
+      r.slug,
+      string_agg(p.name, ',') AS "pisteNames",
+      string_agg(p.slug, ',') AS "pisteSlugs"
+    FROM resorts r
+    INNER JOIN pistes p ON p.resort_id = r.id
+    GROUP BY r.id;
   `,
-    [slug],
   );
 
-  return result.rows[0].id;
+  return result.rows;
 };
 
 export const insertResort = async (resort: Resort): Promise<number> => {
   const { name, slug } = resort;
 
-  const result = await db.query<{ id: number }>(
+  const result = await db.query(
     `
     INSERT INTO resorts (name, slug)
     VALUES ($1, $2)
@@ -59,10 +70,23 @@ export const updateResort = async (resort: Resort): Promise<boolean> => {
   return Boolean(result.rowCount);
 };
 
+export const pisteBySlug = async (slug: string): Promise<Piste> => {
+  const result = await db.query(
+    `
+    SELECT id, resort_id AS "resortId", name, slug, path, graph
+    FROM pistes
+    WHERE slug = $1
+  `,
+    [slug],
+  );
+
+  return result.rows[0];
+};
+
 export const insertPiste = async (piste: Piste): Promise<number> => {
   const { resortId, name, slug, path, graph } = piste;
 
-  const result = await db.query<{ id: number }>(
+  const result = await db.query(
     `
     INSERT INTO pistes (resort_id, name, slug, path, graph)
     VALUES ($1, $2, $3, $4, $5)
@@ -77,7 +101,7 @@ export const insertPiste = async (piste: Piste): Promise<number> => {
 export const updatePiste = async (piste: Piste): Promise<boolean> => {
   const { id, resortId, name, slug, path, graph } = piste;
 
-  const result = await db.query<{ id: number }>(
+  const result = await db.query(
     `
     UPDATE pistes
     SET resort_id = $2, name = $3, slug = $4, path = $5, graph = $6

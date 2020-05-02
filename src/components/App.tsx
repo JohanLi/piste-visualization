@@ -20,7 +20,7 @@ export const App = (): ReactElement => (
           <Menu />
           <Graph />
         </Route>
-        <Route path="/:resort?/:piste?">
+        <Route path="/:resortSlug?/:pisteSlug?">
           <Menu />
           <Editor />
         </Route>

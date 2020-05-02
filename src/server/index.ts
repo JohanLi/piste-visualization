@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { promises as fs } from 'fs';
 
 import {
   insertPiste,
   insertResort,
-  resortByUrlKey,
+  pisteBySlug,
+  resortsAndPistes,
   updatePiste,
   updateResort,
 } from './repository';
@@ -20,46 +20,39 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// TODO: database
+app.get('/resort', async (_req: Request, res: Response) => {
+  try {
+    const resorts = (await resortsAndPistes()).map((resort) => {
+      const names = resort.pisteNames.split(',');
+      const slugs = resort.pisteSlugs.split(',');
+
+      return {
+        name: resort.name,
+        slug: resort.slug,
+        pistes: names.map((name, i) => ({
+          name,
+          slug: slugs[i],
+        })),
+      };
+    });
+
+    res.json(resorts);
+  } catch (e) {
+    res.json([]);
+  }
+});
+
 app.get(
   '/piste',
-  async (
-    req: Request<{}, {}, {}, { resort: string; piste: string }>,
-    res: Response,
-  ) => {
-    const { resort, piste } = req.query;
+  async (req: Request<{}, {}, {}, { slug: string }>, res: Response) => {
+    const { slug } = req.query;
 
     try {
-      const coordinates = await fs.readFile(
-        `./src/server/data/${resort}-${piste}-coordinates.json`,
-        'utf-8',
-      );
-
-      res.json(JSON.parse(coordinates));
+      const piste = await pisteBySlug(slug);
+      res.json(piste);
     } catch (e) {
       res.json([]);
     }
-  },
-);
-
-app.post(
-  '/piste',
-  async (
-    req: Request<
-      {},
-      {},
-      { resort: string; piste: string; coordinates: Coordinate[] }
-    >,
-    res: Response,
-  ) => {
-    const { resort, piste, coordinates } = req.body;
-
-    await fs.writeFile(
-      `./src/server/data/${resort}-${piste}-coordinates.json`,
-      JSON.stringify(coordinates, null, 2),
-    );
-
-    res.sendStatus(200);
   },
 );
 
@@ -91,7 +84,7 @@ app.put(
       {},
       {
         id?: number;
-        resortUrlKey: string;
+        resortId: number;
         name: string;
         path: Coordinate[];
       }
@@ -99,8 +92,7 @@ app.put(
     res: Response,
   ) => {
     let { id } = req.body;
-    const { resortUrlKey, name, path } = req.body;
-    const resortId = await resortByUrlKey(resortUrlKey);
+    const { resortId, name, path } = req.body;
 
     const slug = createSlug(name);
 

@@ -4,39 +4,48 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
 import { Coordinate } from '../types';
+import { Piste, Resort } from '../server/repository';
 
-const cmdOrCtrl = (e: KeyboardEvent) => e.ctrlKey || e.metaKey;
+const cmdOrCtrl = (e: KeyboardEvent): boolean => e.ctrlKey || e.metaKey;
 
 export const Editor = (): ReactElement => {
-  const { resort, piste } = useParams<{ resort: string; piste: string }>();
+  const { pisteSlug } = useParams<{ pisteSlug: string }>();
 
   const [center, setCenter] = useState<Coordinate>();
   const [path, setPath] = useState<Coordinate[]>([]);
   const [pathHistory, setPathHistory] = useState<Coordinate[][]>([]);
+  const [resort, setResort] = useState<Resort>();
 
   const [polylineRef, setPolylineRef] = useState<google.maps.Polyline>();
 
-  const onLoad = (polygon: google.maps.Polyline) => setPolylineRef(polygon);
+  const onLoad = (polygon: google.maps.Polyline): void =>
+    setPolylineRef(polygon);
 
   useEffect(() => {
     axios
-      .request<Coordinate[]>({
+      .request<Piste>({
         method: 'get',
         url: 'http://localhost:8081/piste',
         params: {
-          resort,
-          piste,
+          slug: pisteSlug,
         },
       })
       .then((response) => {
-        setPath(response.data);
+        if (!response.data) {
+          return;
+        }
+
+        setResort(response.data);
+        setPath(response.data.path);
         // should be set to the center of the piste
-        setCenter(response.data?.[0] || { lat: 62.4134629, lng: 13.9759148 });
+        setCenter(
+          response.data.path[0] || { lat: 62.4134629, lng: 13.9759148 },
+        );
       });
-  }, [resort, piste]);
+  }, [pisteSlug]);
 
   useEffect(() => {
-    const undo = (e: KeyboardEvent) => {
+    const undo = (e: KeyboardEvent): void => {
       if (!(e.key === 'z' && cmdOrCtrl(e))) {
         return;
       }
@@ -49,18 +58,17 @@ export const Editor = (): ReactElement => {
       setPathHistory(pathHistory.slice(0, -1));
     };
 
-    const save = async (e: KeyboardEvent) => {
+    const save = async (e: KeyboardEvent): Promise<void> => {
       if (!(e.key === 'x' && cmdOrCtrl(e))) {
         return;
       }
 
       await axios.request({
-        method: 'post',
+        method: 'put',
         url: 'http://localhost:8081/piste',
         data: {
-          resort,
-          piste,
-          coordinates: path,
+          ...resort,
+          path,
         },
       });
     };
@@ -68,13 +76,13 @@ export const Editor = (): ReactElement => {
     window.addEventListener('keydown', undo);
     window.addEventListener('keydown', save);
 
-    return () => {
+    return (): void => {
       window.removeEventListener('keydown', undo);
       window.removeEventListener('keydown', save);
     };
   }, [path, pathHistory]);
 
-  const setPath2 = (newPath: Coordinate[]) => {
+  const setPath2 = (newPath: Coordinate[]): void => {
     if (pathHistory.length >= 5) {
       setPathHistory(pathHistory.slice(1).concat([path]));
     } else {
@@ -89,7 +97,7 @@ export const Editor = (): ReactElement => {
       return;
     }
 
-    const newPathAdded = () => {
+    const newPathAdded = (): void => {
       const path = polylineRef.getPath();
       const pathArray = path
         .getArray()
@@ -105,7 +113,7 @@ export const Editor = (): ReactElement => {
       newPath.addListener('remove_at', newPathAdded),
     ];
 
-    return () => {
+    return (): void => {
       listeners.forEach((listener) => listener.remove());
     };
   }, [path]);
@@ -126,14 +134,14 @@ export const Editor = (): ReactElement => {
         path={path}
         options={options}
         onLoad={onLoad}
-        onClick={(e) => {
+        onClick={(e): void => {
           if (e.vertex !== 0) {
             return;
           }
 
           setPath2(path.slice().reverse());
         }}
-        onRightClick={(e) => {
+        onRightClick={(e): void => {
           if (e.vertex === undefined) {
             return;
           }
@@ -153,7 +161,7 @@ export const Editor = (): ReactElement => {
           height: '100vh',
         }}
         zoom={15}
-        onClick={(e) => {
+        onClick={(e): void => {
           const latLng = {
             lat: e.latLng.lat(),
             lng: e.latLng.lng(),

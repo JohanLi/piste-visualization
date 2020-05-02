@@ -1,42 +1,40 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
 import styles from './menu.css';
+import axios from 'axios';
 
-const resorts = [
-  {
-    name: 'Björnrike',
-    urlKey: 'bjornrike',
-    pistes: [
-      {
-        name: 'Kodiak',
-        urlKey: 'kodiak',
-      },
-      {
-        name: 'Riket',
-        urlKey: 'riket',
-      },
-    ],
-  },
-  {
-    name: 'Åre',
-    urlKey: 'are',
-    pistes: [
-      {
-        name: 'Gästrappet',
-        urlKey: 'gastrappet',
-      },
-    ],
-  },
-];
+interface Resorts {
+  name: string;
+  slug: string;
+  pistes: {
+    name: string;
+    slug: string;
+  }[];
+}
 
 // TODO: load from backend, and error handling
 export const Menu = (): ReactElement => {
-  const { resort, piste } = useParams<{ resort: string; piste: string }>();
+  const { resortSlug, pisteSlug } = useParams<{
+    resortSlug: string;
+    pisteSlug: string;
+  }>();
+  const [resorts, setResorts] = useState<Resorts[]>([]);
 
-  const currentResort = resorts.find((r) => r.urlKey === resort);
-  const currentPiste = currentResort?.pistes.find((p) => p.urlKey === piste);
+  useEffect(() => {
+    axios
+      .request<Resorts[]>({
+        method: 'get',
+        url: 'http://localhost:8081/resort',
+      })
+      .then((response) => {
+        setResorts(response.data);
+      });
+  }, []);
+
+  const currentResort = resorts.find((r) => r.slug === resortSlug);
+  const currentPiste = currentResort?.pistes.find((p) => p.slug === pisteSlug);
 
   return (
     <div className={styles.menu}>
@@ -47,13 +45,13 @@ export const Menu = (): ReactElement => {
       <ul>
         {resorts.map((resort) => {
           const piste = resort.pistes.map((p) => (
-            <li key={p.urlKey}>
-              <Link to={`/${resort.urlKey}/${p.urlKey}`}>{p.name}</Link>
+            <li key={p.slug}>
+              <Link to={`/${resort.slug}/${p.slug}`}>{p.name}</Link>
             </li>
           ));
 
           return (
-            <li key={resort.urlKey}>
+            <li key={resort.slug}>
               {resort.name}
               <ul>{piste}</ul>
             </li>
