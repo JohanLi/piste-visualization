@@ -21,6 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// TODO: input and error handling for all endpoints
 app.get('/resort', async (_req: Request, res: Response) => {
   try {
     const resorts = (await getResorts()).map((resort) => {
@@ -137,10 +138,18 @@ app.put(
 app.get(
   '/graph',
   async (req: Request<{}, {}, {}, { pisteSlugs: string }>, res: Response) => {
-    const { pisteSlugs } = req.query;
-    const graph = await getGraph(pisteSlugs.split(','));
+    const pisteSlugs = req.query.pisteSlugs.split(',');
 
-    res.json(graph);
+    const graph = await getGraph(pisteSlugs);
+    const graphSorted = pisteSlugs
+      .map((slug) => graph.find((p) => p.slug === slug))
+      .filter(
+        (graph): graph is { name: string; slug: string; graph: Graph[] } =>
+          graph !== undefined,
+      );
+
+    // TODO: error handling for slugs that don't exist
+    res.json(graphSorted);
   },
 );
 

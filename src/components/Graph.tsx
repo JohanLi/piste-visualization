@@ -6,16 +6,7 @@ import { Graph as GraphType } from '../types';
 
 import styles from './graph.css';
 
-const palette = [
-  '#003f5c',
-  // '#2f4b7c',
-  '#665191',
-  // '#a05195',
-  '#d45087',
-  // '#f95d6a',
-  '#ff7c43',
-  '#ffa600',
-];
+const palette = ['#ffa600', '#d45087', '#665191', '#003f5c'];
 
 // TODO: Investigate how to display pistes with short vertical drops, e.g. "ravinen"
 export const Graph = (): ReactElement => {
@@ -113,6 +104,38 @@ export const Graph = (): ReactElement => {
     setHeight(globalMaxY);
   }, [pistes, mode]);
 
+  let victoryChart = <div>Loading...</div>;
+
+  if (graphs.length) {
+    victoryChart = (
+      <>
+        <div>
+          <VictoryChart domain={{ x: [0, width], y: [0, height] }}>
+            <VictoryGroup
+              style={{ data: { strokeWidth: 1, fillOpacity: 0.1 } }}
+            >
+              {pistes.map((piste, i) => (
+                <VictoryArea
+                  key={piste.slug}
+                  style={{ data: { fill: palette[i], stroke: palette[i] } }}
+                  data={graphs[i]}
+                />
+              ))}
+            </VictoryGroup>
+          </VictoryChart>
+        </div>
+        <div className={styles.legend}>
+          {pistes.map((piste, i) => (
+            <div key={piste.slug} className={styles.item}>
+              <span className={styles.dot} style={{ background: palette[i] }} />{' '}
+              {piste.name}
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
   // TODO: investigate how to best set the size of VictoryChart
   return (
     <div className={styles.graph}>
@@ -134,27 +157,7 @@ export const Graph = (): ReactElement => {
           Steepness
         </span>
       </div>
-      <div>
-        <VictoryChart domain={{ x: [0, width], y: [0, height] }}>
-          <VictoryGroup style={{ data: { strokeWidth: 1, fillOpacity: 0.4 } }}>
-            {pistes.map((piste, i) => (
-              <VictoryArea
-                key={piste.slug}
-                style={{ data: { fill: palette[i], stroke: palette[i] } }}
-                data={graphs[i]}
-              />
-            ))}
-          </VictoryGroup>
-        </VictoryChart>
-      </div>
-      <div className={styles.legend}>
-        {pistes.map((piste, i) => (
-          <div key={piste.slug} className={styles.item}>
-            <span className={styles.dot} style={{ background: palette[i] }} />{' '}
-            {piste.name}
-          </div>
-        ))}
-      </div>
+      {victoryChart}
     </div>
   );
 };
