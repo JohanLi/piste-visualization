@@ -25,6 +25,7 @@ export const Graph = (): ReactElement => {
   const [graphs, setGraphs] = useState<GraphType[][]>([]);
 
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
   const [mode, setMode] = useState<'vertical' | 'steepness'>('vertical');
 
   useEffect(() => {
@@ -42,64 +43,77 @@ export const Graph = (): ReactElement => {
   }, []);
 
   useEffect(() => {
+    let unsetGraphs: GraphType[][] = [[]];
+
     if (mode === 'steepness') {
-      const distance = 50;
+      // TODO: investigate sensible defaults
+      const distance = 40;
       const increment = 2;
+      const smoothDistance = 10;
 
-      setGraphs(
-        pistes.map((piste) => {
-          const graphSteepness = piste.graph
-            .map((coordinate, i) => {
-              const next = piste.graph[i + distance / increment];
+      unsetGraphs = pistes.map((piste) => {
+        const graphSteepness = piste.graph
+          .map((coordinate, i) => {
+            const next = piste.graph[i + distance / increment];
 
-              if (next) {
-                return {
-                  x: coordinate.x,
-                  y:
-                    Math.atan((coordinate.y - next.y) / distance) *
-                    (180 / Math.PI),
-                };
-              }
+            if (next) {
+              return {
+                x: coordinate.x,
+                y:
+                  Math.atan((coordinate.y - next.y) / distance) *
+                  (180 / Math.PI),
+              };
+            }
 
-              return undefined;
-            })
-            .filter(
-              (coordinate): coordinate is GraphType => coordinate !== undefined,
-            );
+            return undefined;
+          })
+          .filter(
+            (coordinate): coordinate is GraphType => coordinate !== undefined,
+          )
+          .filter((_coordinate, i) => i % (smoothDistance / increment) === 0);
 
-          return graphSteepness;
-        }),
-      );
+        return graphSteepness;
+      });
     }
 
     if (mode === 'vertical') {
-      setGraphs(
-        pistes.map((piste) => {
-          // not the most efficient algorithm – used here due to simplicity
-          const altitudes = piste.graph.map((d) => d.y);
-          const minAltitude = Math.min(...altitudes);
+      unsetGraphs = pistes.map((piste) => {
+        // not the most efficient algorithm – used here due to simplicity
+        const altitudes = piste.graph.map((d) => d.y);
+        const minAltitude = Math.min(...altitudes);
 
-          return piste.graph.map((b) => ({
-            x: b.x,
-            y: b.y - minAltitude,
-          }));
-        }),
-      );
+        return piste.graph.map((b) => ({
+          x: b.x,
+          y: b.y - minAltitude,
+        }));
+      });
     }
 
     let globalMaxDistance = 0;
+    let globalMaxY = 0;
 
-    pistes.forEach((piste) => {
-      const lastNode = piste.graph[piste.graph.length - 1];
+    unsetGraphs.forEach((graph) => {
+      const lastNode = graph[graph.length - 1];
 
       if (lastNode?.x > globalMaxDistance) {
         globalMaxDistance = lastNode.x;
       }
+
+      // if max steepness is 30.5, Victory seems to chop the top part of the graph unless domain is set to 0, 31 for Y
+      const ys = graph.map((c) => c.y);
+      const maxY = Math.ceil(Math.max(...ys));
+
+      if (maxY > globalMaxY) {
+        globalMaxY = maxY;
+      }
     });
 
+    setGraphs(unsetGraphs);
     setWidth(globalMaxDistance);
+    setHeight(globalMaxY);
   }, [pistes, mode]);
 
+  // TODO: investigate how to best set the size of VictoryChart
   return (
     <div className={styles.graph}>
       <div className={styles.mode}>
@@ -121,7 +135,7 @@ export const Graph = (): ReactElement => {
         </span>
       </div>
       <div>
-        <VictoryChart width={width / 3}>
+        <VictoryChart domain={{ x: [0, width], y: [0, height] }}>
           <VictoryGroup style={{ data: { strokeWidth: 1, fillOpacity: 0.4 } }}>
             {pistes.map((piste, i) => (
               <VictoryArea
