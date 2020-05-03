@@ -17,6 +17,7 @@ const palette = [
   '#ffa600',
 ];
 
+// TODO: Investigate how to display pistes with short vertical drops, e.g. "ravinen"
 export const Graph = (): ReactElement => {
   const [a, setA] = useState<
     { name: string; slug: string; graph: GraphType[] }[]
@@ -30,7 +31,7 @@ export const Graph = (): ReactElement => {
         method: 'get',
         url: 'http://localhost:8081/graph',
         params: {
-          pisteSlugs: 'gastrappet,kodiak,riket,hallas-hang', // TODO: investigate behavior when only "ravinen" is specified
+          pisteSlugs: 'gastrappet,kodiak,riket,hallas-hang',
         },
       })
       .then((response) => {
@@ -68,7 +69,7 @@ export const Graph = (): ReactElement => {
   return (
     <div className={styles.graph}>
       <div>
-        <VictoryChart scale={{ x: 'linear' }} width={width} height={height}>
+        <VictoryChart width={width} height={height}>
           <VictoryGroup style={{ data: { strokeWidth: 1, fillOpacity: 0.4 } }}>
             {a.map((b, i) => (
               <VictoryArea
