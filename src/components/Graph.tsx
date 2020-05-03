@@ -19,11 +19,13 @@ const palette = [
 
 // TODO: Investigate how to display pistes with short vertical drops, e.g. "ravinen"
 export const Graph = (): ReactElement => {
-  const [a, setA] = useState<
+  const [pistes, setPistes] = useState<
     { name: string; slug: string; graph: GraphType[] }[]
   >([]);
+  const [graphs, setGraphs] = useState<GraphType[][]>([]);
+
   const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+  const [mode, setMode] = useState<'vertical' | 'steepness'>('vertical');
 
   useEffect(() => {
     axios
@@ -31,61 +33,111 @@ export const Graph = (): ReactElement => {
         method: 'get',
         url: 'http://localhost:8081/graph',
         params: {
-          pisteSlugs: 'gastrappet,kodiak,riket,hallas-hang',
+          pisteSlugs: 'gotes-brant,gastrappet,kodiak,slalombacken',
         },
       })
       .then((response) => {
-        let globalMaxAltitude = 0;
-        let globalMaxDistance = 0;
-
-        response.data.forEach((b) => {
-          // not the most efficient algorithm – used here due to simplicity
-          const altitudes = b.graph.map((d) => d.y);
-          const minAltitude = Math.min(...altitudes);
-          const maxAltitude = Math.max(...altitudes) - minAltitude;
-
-          if (maxAltitude > globalMaxAltitude) {
-            globalMaxAltitude = maxAltitude;
-          }
-
-          const lastNode = b.graph[b.graph.length - 1];
-
-          if (lastNode?.x > globalMaxDistance) {
-            globalMaxDistance = lastNode.x;
-          }
-
-          b.graph = b.graph.map((c) => ({
-            x: c.x,
-            y: c.y - minAltitude,
-          }));
-        });
-
-        setA(response.data);
-        setWidth(globalMaxDistance);
-        setHeight(globalMaxAltitude);
+        setPistes(response.data);
       });
   }, []);
 
+  useEffect(() => {
+    if (mode === 'steepness') {
+      const distance = 50;
+      const increment = 2;
+
+      setGraphs(
+        pistes.map((piste) => {
+          const graphSteepness = piste.graph
+            .map((coordinate, i) => {
+              const next = piste.graph[i + distance / increment];
+
+              if (next) {
+                return {
+                  x: coordinate.x,
+                  y:
+                    Math.atan((coordinate.y - next.y) / distance) *
+                    (180 / Math.PI),
+                };
+              }
+
+              return undefined;
+            })
+            .filter(
+              (coordinate): coordinate is GraphType => coordinate !== undefined,
+            );
+
+          return graphSteepness;
+        }),
+      );
+    }
+
+    if (mode === 'vertical') {
+      setGraphs(
+        pistes.map((piste) => {
+          // not the most efficient algorithm – used here due to simplicity
+          const altitudes = piste.graph.map((d) => d.y);
+          const minAltitude = Math.min(...altitudes);
+
+          return piste.graph.map((b) => ({
+            x: b.x,
+            y: b.y - minAltitude,
+          }));
+        }),
+      );
+    }
+
+    let globalMaxDistance = 0;
+
+    pistes.forEach((piste) => {
+      const lastNode = piste.graph[piste.graph.length - 1];
+
+      if (lastNode?.x > globalMaxDistance) {
+        globalMaxDistance = lastNode.x;
+      }
+    });
+
+    setWidth(globalMaxDistance);
+  }, [pistes, mode]);
+
   return (
     <div className={styles.graph}>
+      <div className={styles.mode}>
+        <span
+          onClick={(): void => setMode('vertical')}
+          className={`${styles.modeItem} ${
+            mode === 'vertical' && styles.modeItemSelected
+          }`}
+        >
+          Vertical
+        </span>
+        <span
+          onClick={(): void => setMode('steepness')}
+          className={`${styles.modeItem} ${
+            mode === 'steepness' && styles.modeItemSelected
+          }`}
+        >
+          Steepness
+        </span>
+      </div>
       <div>
-        <VictoryChart width={width} height={height}>
+        <VictoryChart width={width / 3}>
           <VictoryGroup style={{ data: { strokeWidth: 1, fillOpacity: 0.4 } }}>
-            {a.map((b, i) => (
+            {pistes.map((piste, i) => (
               <VictoryArea
-                key={b.slug}
+                key={piste.slug}
                 style={{ data: { fill: palette[i], stroke: palette[i] } }}
-                data={b.graph}
+                data={graphs[i]}
               />
             ))}
           </VictoryGroup>
         </VictoryChart>
       </div>
       <div className={styles.legend}>
-        {a.map((b, i) => (
-          <div key={b.slug} className={styles.item}>
+        {pistes.map((piste, i) => (
+          <div key={piste.slug} className={styles.item}>
             <span className={styles.dot} style={{ background: palette[i] }} />{' '}
-            {b.name}
+            {piste.name}
           </div>
         ))}
       </div>

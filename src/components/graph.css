@@ -1,5 +1,20 @@
 .graph {
   flex-grow: 1;
+  padding: 32px 0;
+}
+
+.mode {
+  display: flex;
+  justify-content: center;
+}
+
+.modeItem {
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.modeItemSelected {
+  font-weight: bold;
 }
 
 .legend {
@@ -8,7 +23,7 @@
 }
 
 .item {
-  margin-right: 32px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
 }
