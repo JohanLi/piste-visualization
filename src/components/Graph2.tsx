@@ -2,9 +2,10 @@ import React, { ReactElement, useEffect, useState } from 'react';
 import { Autocomplete } from '@material-ui/lab';
 import { TextField } from '@material-ui/core';
 import { Container, Grid } from '@material-ui/core';
-import axios from 'axios';
+import { Clear } from '@material-ui/icons';
 
 import styles from './graph2.css';
+import { getResorts } from '../utils/api';
 
 interface Piste {
   name: string;
@@ -15,68 +16,53 @@ interface Piste {
   };
 }
 
-interface Resorts {
-  name: string;
-  slug: string;
-  pistes: {
-    name: string;
-    slug: string;
-  }[];
-}
-
 const palette = ['#ffa600', '#d45087', '#665191', '#003f5c'];
-const limit = palette.length;
 
-// while sorting can be done within Autocomplete, the backend will take care of returning sorted data
-export const Graph2 = (): ReactElement => {
-  const [selected, setSelected] = useState<string[]>([]); // ['hallas-hang', 'riket', 'kopparbacken']
-  const [pistes, setPistes] = useState<Piste[]>([]);
-  const [inputValue, setInputValue] = React.useState('');
+export const Graph2 = (): ReactElement | null => {
   const [value, setValue] = React.useState<Piste | null>(null);
+  const [inputValue, setInputValue] = React.useState('');
+
+  // ['hallas-hang', 'riket', 'kopparbacken']
+  const [selectedPisteSlugs, setSelectedPisteSlugs] = useState<string[]>([]);
+
+  const [pistes, setPistes] = useState<Piste[]>([]);
 
   useEffect(() => {
-    axios
-      .request<Resorts[]>({
-        method: 'get',
-        url: 'http://localhost:8081/resort',
-      })
-      .then((response) => {
-        const pistes: Piste[] = [];
+    getResorts.then((resorts) => {
+      const pistes: Piste[] = [];
 
-        response.data.forEach((resort) => {
-          resort.pistes.forEach((piste) => {
-            pistes.push({
-              ...piste,
-              resort: {
-                name: resort.name,
-                slug: resort.slug,
-              },
-            });
+      resorts.forEach((resort) => {
+        resort.pistes.forEach((piste) => {
+          pistes.push({
+            ...piste,
+            resort: {
+              name: resort.name,
+              slug: resort.slug,
+            },
           });
         });
-
-        setPistes(pistes);
       });
+
+      setPistes(pistes);
+    })
   }, []);
 
   if (!pistes.length) {
-    return <div>loading...</div>;
+    return null;
   }
-
-  console.log(inputValue);
 
   return (
     <Container maxWidth="lg">
-      <Grid container spacing={3} alignItems="center">
-        {selected.map((s, i) => {
-          const piste = pistes.find((p) => p.slug === s);
+      <Grid container alignItems="center">
+        {selectedPisteSlugs.map((slug, i) => {
+          const piste = pistes.find((p) => p.slug === slug);
 
           if (!piste) {
             return null;
           }
 
           return (
-            <Grid item xs key={s}>
+            <Grid item xs={12} md key={slug}>
               <div className={styles.pisteWrapper}>
                 <div>
                   <span
@@ -88,12 +74,16 @@ export const Graph2 = (): ReactElement => {
                   <div>{piste.name}</div>
                   <div className={styles.resort}>{piste.resort.name}</div>
                 </div>
+                <div className={styles.clear}
+                     onClick={() => setSelectedPisteSlugs(selectedPisteSlugs.filter((s) => s !== slug))}>
+                  <Clear style={{ color: '#999' }}/>
+                </div>
               </div>
             </Grid>
           );
         })}
-        {!(selected.length >= 4) && (
-          <Grid item xs>
+        {!(selectedPisteSlugs.length >= palette.length) && (
+          <Grid item xs={12} md>
             <Autocomplete
               className={styles.autocomplete}
               value={value}
@@ -101,7 +91,7 @@ export const Graph2 = (): ReactElement => {
               onInputChange={(_, newInputValue) => {
                 setInputValue(newInputValue);
               }}
-              options={pistes.filter((p) => !selected.includes(p.slug))}
+              options={pistes.filter((p) => !selectedPisteSlugs.includes(p.slug))}
               groupBy={(option) => option.resort.name}
               getOptionLabel={(option) => option.name}
               renderInput={(params) => (
@@ -119,7 +109,7 @@ export const Graph2 = (): ReactElement => {
               blurOnSelect
               onChange={(_, newValue) => {
                 if (newValue) {
-                  setSelected([...selected, newValue.slug]);
+                  setSelectedPisteSlugs([...selectedPisteSlugs, newValue.slug]);
                 }
 
                 setInputValue('');

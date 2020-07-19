@@ -11,4 +11,5 @@ body {
 
 .app {
   display: flex;
+  margin: 80px 0;
 }
