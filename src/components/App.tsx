@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
-import { Graph2 } from './Graph2';
+import { Graph } from './Graph';
 import { Menu } from './Menu';
 import { Editor } from './Editor';
 
@@ -16,8 +16,8 @@ export const App = (): ReactElement => (
     />
     <div className={styles.app}>
       <Switch>
-        <Route path="/graph2">
-          <Graph2 />
+        <Route path="/graph">
+          <Graph />
         </Route>
         <Route path="/:resortSlug?/:pisteSlug?">
           <Menu />

@@ -1,150 +1,158 @@
 import React, { ReactElement, useEffect, useState } from 'react';
-import { VictoryChart, VictoryGroup, VictoryArea } from 'victory';
-
-import { Graph as GraphType } from '../types';
+import { Autocomplete } from '@material-ui/lab';
+import { createFilterOptions } from '@material-ui/lab/Autocomplete';
+import { TextField } from '@material-ui/core';
+import { Container, Grid } from '@material-ui/core';
+import { Clear } from '@material-ui/icons';
 
 import styles from './graph.css';
+import { getResorts, getGraph } from '../utils/api';
+import { Graph as GraphType } from '../types';
+import { Chart } from './Chart';
+
+interface Piste {
+  name: string;
+  slug: string;
+  resort: {
+    name: string;
+    slug: string;
+  };
+}
 
 const palette = ['#ffa600', '#d45087', '#665191', '#003f5c'];
 
-interface Props {
-  pistes: { name: string; slug: string; graph: GraphType[] }[]
-}
+export const Graph = (): ReactElement | null => {
+  const [value, setValue] = React.useState<Piste | null>(null);
+  const [inputValue, setInputValue] = React.useState('');
 
-// TODO: Investigate how to display pistes with short vertical drops, e.g. "ravinen"
-export const Graph = (props: Props): ReactElement => {
-  const { pistes } = props;
-  const [graphs, setGraphs] = useState<GraphType[][]>([]);
+  // ['hallas-hang', 'riket', 'kopparbacken']
+  const [selectedPisteSlugs, setSelectedPisteSlugs] = useState<string[]>([]);
 
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
-  const [mode, setMode] = useState<'vertical' | 'steepness'>('vertical');
+  const [pistes, setPistes] = useState<Piste[]>([]);
+
+  const [pistes2, setPistes2] = useState<
+    { name: string; slug: string; graph: GraphType[] }[]
+  >([]);
 
   useEffect(() => {
-    let unsetGraphs: GraphType[][] = [[]];
+    getResorts.then((resorts) => {
+      const pistes: Piste[] = [];
 
-    if (mode === 'steepness') {
-      // TODO: investigate sensible defaults
-      const distance = 40;
-      const increment = 2;
-      const smoothDistance = 10;
-
-      unsetGraphs = pistes.map((piste) => {
-        const graphSteepness = piste.graph
-          .map((coordinate, i) => {
-            const next = piste.graph[i + distance / increment];
-
-            if (next) {
-              return {
-                x: coordinate.x,
-                y:
-                  Math.atan((coordinate.y - next.y) / distance) *
-                  (180 / Math.PI),
-              };
-            }
-
-            return undefined;
-          })
-          .filter(
-            (coordinate): coordinate is GraphType => coordinate !== undefined,
-          )
-          .filter((_coordinate, i) => i % (smoothDistance / increment) === 0);
-
-        return graphSteepness;
+      resorts.forEach((resort) => {
+        resort.pistes.forEach((piste) => {
+          pistes.push({
+            ...piste,
+            resort: {
+              name: resort.name,
+              slug: resort.slug,
+            },
+          });
+        });
       });
-    }
 
-    if (mode === 'vertical') {
-      unsetGraphs = pistes.map((piste) => {
-        // not the most efficient algorithm – used here due to simplicity
-        const altitudes = piste.graph.map((d) => d.y);
-        const minAltitude = Math.min(...altitudes);
-
-        return piste.graph.map((b) => ({
-          x: b.x,
-          y: b.y - minAltitude,
-        }));
-      });
-    }
-
-    let globalMaxDistance = 0;
-    let globalMaxY = 0;
-
-    unsetGraphs.forEach((graph) => {
-      const lastNode = graph[graph.length - 1];
-
-      if (lastNode?.x > globalMaxDistance) {
-        globalMaxDistance = lastNode.x;
-      }
-
-      // if max steepness is 30.5, Victory seems to chop the top part of the graph unless domain is set to 0, 31 for Y
-      const ys = graph.map((c) => c.y);
-      const maxY = Math.ceil(Math.max(...ys));
-
-      if (maxY > globalMaxY) {
-        globalMaxY = maxY;
-      }
+      setPistes(pistes);
     });
+  }, []);
 
-    setGraphs(unsetGraphs);
-    setWidth(globalMaxDistance);
-    setHeight(globalMaxY);
-  }, [pistes, mode]);
+  useEffect(() => {
+    if (!selectedPisteSlugs.length) {
+      setPistes2([]);
+      return;
+    }
 
-  let victoryChart = <div>Loading...</div>;
+    getGraph(selectedPisteSlugs).then((response) => {
+      setPistes2(response);
+    });
+  }, [selectedPisteSlugs]);
 
-  if (graphs.length) {
-    victoryChart = (
-      <>
-        <div>
-          <VictoryChart domain={{ x: [0, width], y: [0, height] }}>
-            <VictoryGroup
-              style={{ data: { strokeWidth: 1, fillOpacity: 0.1 } }}
-            >
-              {pistes.map((piste, i) => (
-                <VictoryArea
-                  key={piste.slug}
-                  style={{ data: { fill: palette[i], stroke: palette[i] } }}
-                  data={graphs[i]}
-                />
-              ))}
-            </VictoryGroup>
-          </VictoryChart>
-        </div>
-        <div className={styles.legend}>
-          {pistes.map((piste, i) => (
-            <div key={piste.slug} className={styles.item}>
-              <span className={styles.dot} style={{ background: palette[i] }} />{' '}
-              {piste.name}
-            </div>
-          ))}
-        </div>
-      </>
-    );
+  if (!pistes.length) {
+    return null;
   }
 
-  // TODO: investigate how to best set the size of VictoryChart
   return (
-    <div className={styles.graph}>
-      <div className={styles.mode}>
-        <span
-          onClick={(): void => setMode('vertical')}
-          className={`${styles.modeItem} ${
-            mode === 'vertical' && styles.modeItemSelected
-          }`}
-        >
-          Vertical
-        </span>
-        <span
-          onClick={(): void => setMode('steepness')}
-          className={`${styles.modeItem} ${
-            mode === 'steepness' && styles.modeItemSelected
-          }`}
-        >
-          Steepness
-        </span>
-      </div>
-      {victoryChart}
-    </div>
+    <Container maxWidth="lg">
+      <Grid container alignItems="center">
+        {selectedPisteSlugs.map((slug, i) => {
+          const piste = pistes.find((p) => p.slug === slug);
+
+          if (!piste) {
+            return null;
+          }
+
+          return (
+            <Grid item xs={12} md key={slug}>
+              <div className={styles.pisteWrapper}>
+                <div>
+                  <span
+                    className={styles.dot}
+                    style={{ backgroundColor: palette[i] }}
+                  />
+                </div>
+                <div className={styles.pisteResort}>
+                  <div>{piste.name}</div>
+                  <div className={styles.resort}>{piste.resort.name}</div>
+                </div>
+                <div
+                  className={styles.clear}
+                  onClick={() =>
+                    setSelectedPisteSlugs(
+                      selectedPisteSlugs.filter((s) => s !== slug),
+                    )
+                  }
+                >
+                  <Clear style={{ color: '#999' }} />
+                </div>
+              </div>
+            </Grid>
+          );
+        })}
+        {!(selectedPisteSlugs.length >= palette.length) && (
+          <Grid item xs={12} md>
+            <Autocomplete
+              className={styles.autocomplete}
+              value={value}
+              inputValue={inputValue}
+              onInputChange={(_, newInputValue) => {
+                setInputValue(newInputValue);
+              }}
+              options={pistes.filter(
+                (p) => !selectedPisteSlugs.includes(p.slug),
+              )}
+              groupBy={(option) => option.resort.name}
+              getOptionLabel={(option) => option.name}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Add piste"
+                  InputProps={{
+                    ...params.InputProps,
+                    disableUnderline: true,
+                  }}
+                />
+              )}
+              clearOnBlur
+              autoHighlight
+              blurOnSelect
+              onChange={(_, newValue) => {
+                if (newValue) {
+                  setSelectedPisteSlugs([...selectedPisteSlugs, newValue.slug]);
+                }
+
+                setInputValue('');
+                setValue(null);
+              }}
+              filterOptions={createFilterOptions({ matchFrom: 'start' })}
+            />
+          </Grid>
+        )}
+      </Grid>
+      <Grid container>
+        <Grid item xs>
+          <Chart pistes={pistes2} palette={palette} />
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
+
+// TODO consider displaying a dialog for users to suggest new pistes

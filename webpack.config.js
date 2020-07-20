@@ -12,12 +12,12 @@ let additionalClientConfig = {};
 module.exports = (env = {}) => {
   const { development } = env;
 
-  if (development) {
+  if (true) {
     cssHmr = true;
     cssFilename = 'styles.css';
     additionalClientConfig = {
       mode: 'development',
-      devtool: 'eval-source-map',
+      devtool: 'eval-cheap-module-source-map',
       watch: true,
       devServer: {
         hot: true,
@@ -32,8 +32,8 @@ module.exports = (env = {}) => {
       rules: [
         {
           test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: ['babel-loader'],
+          include: path.resolve(__dirname, 'src'),
+          loader: 'babel-loader',
         },
         {
           test: /\.css$/,
@@ -58,6 +58,8 @@ module.exports = (env = {}) => {
     },
     resolve: {
       extensions: ['.tsx', '.ts', '.js'],
+      symlinks: false,
+      cacheWithContext: false,
     },
     output: {
       filename: 'bundle-[hash].js',
