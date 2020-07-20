@@ -1,6 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { VictoryChart, VictoryGroup, VictoryArea } from 'victory';
-import axios from 'axios';
 
 import { Graph as GraphType } from '../types';
 
@@ -8,30 +7,18 @@ import styles from './graph.css';
 
 const palette = ['#ffa600', '#d45087', '#665191', '#003f5c'];
 
+interface Props {
+  pistes: { name: string; slug: string; graph: GraphType[] }[]
+}
+
 // TODO: Investigate how to display pistes with short vertical drops, e.g. "ravinen"
-export const Graph = (): ReactElement => {
-  const [pistes, setPistes] = useState<
-    { name: string; slug: string; graph: GraphType[] }[]
-  >([]);
+export const Graph = (props: Props): ReactElement => {
+  const { pistes } = props;
   const [graphs, setGraphs] = useState<GraphType[][]>([]);
 
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
   const [mode, setMode] = useState<'vertical' | 'steepness'>('vertical');
-
-  useEffect(() => {
-    axios
-      .request<{ name: string; slug: string; graph: GraphType[] }[]>({
-        method: 'get',
-        url: 'http://localhost:8081/graph',
-        params: {
-          pisteSlugs: 'gotes-brant,gastrappet,kodiak,slalombacken',
-        },
-      })
-      .then((response) => {
-        setPistes(response.data);
-      });
-  }, []);
 
   useEffect(() => {
     let unsetGraphs: GraphType[][] = [[]];

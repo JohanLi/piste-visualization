@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Graph as GraphType } from '../types';
 
 interface Resort {
   name: string;
@@ -16,6 +17,14 @@ export const getResorts = axios
     method: 'get',
     url: 'http://localhost:8081/resort',
   })
-  .then((response) => {
-    return response.data;
-  });
+  .then((response) => response.data);
+
+export const getGraph = (pisteSlugs: string[]): Promise<{ name: string; slug: string; graph: GraphType[] }[]> => axios
+  .request<{ name: string; slug: string; graph: GraphType[] }[]>({
+    method: 'get',
+    url: 'http://localhost:8081/graph',
+    params: {
+      pisteSlugs
+    },
+  })
+  .then((response) => response.data);

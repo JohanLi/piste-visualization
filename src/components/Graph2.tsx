@@ -5,7 +5,9 @@ import { Container, Grid } from '@material-ui/core';
 import { Clear } from '@material-ui/icons';
 
 import styles from './graph2.css';
-import { getResorts } from '../utils/api';
+import { getResorts, getGraph } from '../utils/api';
+import { Graph as GraphType } from '../types';
+import { Graph } from './Graph';
 
 interface Piste {
   name: string;
@@ -27,6 +29,10 @@ export const Graph2 = (): ReactElement | null => {
 
   const [pistes, setPistes] = useState<Piste[]>([]);
 
+  const [pistes2, setPistes2] = useState<
+    { name: string; slug: string; graph: GraphType[] }[]
+    >([]);
+
   useEffect(() => {
     getResorts.then((resorts) => {
       const pistes: Piste[] = [];
@@ -46,6 +52,17 @@ export const Graph2 = (): ReactElement | null => {
       setPistes(pistes);
     })
   }, []);
+
+  useEffect(() => {
+    if (!selectedPisteSlugs.length) {
+      setPistes2([]);
+      return;
+    }
+
+    getGraph(selectedPisteSlugs).then((response) => {
+      setPistes2(response);
+    })
+  }, [selectedPisteSlugs])
 
   if (!pistes.length) {
     return null;
@@ -118,6 +135,11 @@ export const Graph2 = (): ReactElement | null => {
             />
           </Grid>
         )}
+      </Grid>
+      <Grid container>
+        <Grid item xs>
+          <Graph pistes={pistes2} />
+        </Grid>
       </Grid>
     </Container>
   );

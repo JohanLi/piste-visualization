@@ -17,7 +17,7 @@ module.exports = (env = {}) => {
     cssFilename = 'styles.css';
     additionalClientConfig = {
       mode: 'development',
-      devtool: 'source-map',
+      devtool: 'eval-source-map',
       watch: true,
       devServer: {
         hot: true,

@@ -137,8 +137,8 @@ app.put(
 
 app.get(
   '/graph',
-  async (req: Request<{}, {}, {}, { pisteSlugs: string }>, res: Response) => {
-    const pisteSlugs = req.query.pisteSlugs.split(',');
+  async (req: Request<{}, {}, {}, { pisteSlugs: string[] }>, res: Response) => {
+    const pisteSlugs = req.query.pisteSlugs;
 
     const graph = await getGraph(pisteSlugs);
     const graphSorted = pisteSlugs

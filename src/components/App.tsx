@@ -2,7 +2,6 @@ import React, { ReactElement } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
-import { Graph } from './Graph';
 import { Graph2 } from './Graph2';
 import { Menu } from './Menu';
 import { Editor } from './Editor';
@@ -17,10 +16,6 @@ export const App = (): ReactElement => (
     />
     <div className={styles.app}>
       <Switch>
-        <Route path="/graph">
-          <Menu />
-          <Graph />
-        </Route>
         <Route path="/graph2">
           <Graph2 />
         </Route>
