@@ -14,6 +14,10 @@ module.exports = {
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
+      {
+        test: require.resolve('express/lib/view'),
+        use: 'null-loader',
+      },
     ],
   },
   resolve: {

@@ -1,31 +1,28 @@
-.graph {
-  flex-grow: 1;
-  padding: 32px 0;
+.container {
+  margin-top: 40px;
 }
 
-.mode {
-  display: flex;
-  justify-content: center;
-}
-
-.modeItem {
-  padding: 0 16px;
-  cursor: pointer;
-}
-
-.modeItemSelected {
-  font-weight: bold;
-}
-
-.legend {
-  display: flex;
-  justify-content: center;
-}
-
-.item {
-  padding: 0 16px;
+.pisteWrapper {
   display: flex;
   align-items: center;
+  padding: 30px;
+}
+
+.pisteWrapper:hover {
+  background: #f8f8f8;
+}
+
+.pisteWrapper:hover .clear {
+  display: block;
+}
+
+.pisteResort {
+  margin-left: 16px;
+}
+
+.resort {
+  font-size: 14px;
+  color: #999;
 }
 
 .dot {
@@ -33,5 +30,15 @@
   width: 16px;
   border-radius: 50%;
   display: inline-block;
-  margin-right: 8px;
+}
+
+.clear {
+  margin-left: auto;
+  display: none;
+  cursor: pointer;
+}
+
+.autocomplete {
+  max-width: 300px;
+  padding: 30px;
 }

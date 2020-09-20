@@ -17,7 +17,6 @@ export const App = (): ReactElement => (
     <div className={styles.app}>
       <Switch>
         <Route path="/graph">
-          <Menu />
           <Graph />
         </Route>
         <Route path="/:resortSlug?/:pisteSlug?">

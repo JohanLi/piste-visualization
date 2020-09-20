@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import cors from 'cors';
 
 import {
@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cors());
 
 // TODO: input and error handling for all endpoints
-app.get('/resort', async (_req: Request, res: Response) => {
+app.get('/resort', async (_req, res: Response) => {
   try {
     const resorts = (await getResorts()).map((resort) => {
       const names = resort.pisteNames.split(',');
@@ -44,26 +44,20 @@ app.get('/resort', async (_req: Request, res: Response) => {
   }
 });
 
-app.get(
-  '/piste',
-  async (req: Request<{}, {}, {}, { slug: string }>, res: Response) => {
-    const { slug } = req.query;
+app.get('/piste', async (req: { query: { slug: string } }, res: Response) => {
+  const { slug } = req.query;
 
-    try {
-      const piste = await pisteBySlug(slug);
-      res.json(piste);
-    } catch (e) {
-      res.json([]);
-    }
-  },
-);
+  try {
+    const piste = await pisteBySlug(slug);
+    res.json(piste);
+  } catch (e) {
+    res.json([]);
+  }
+});
 
 app.put(
   '/resort',
-  async (
-    req: Request<{}, {}, { id?: number; name: string }>,
-    res: Response,
-  ) => {
+  async (req: { body: { id?: number; name: string } }, res: Response) => {
     let { id } = req.body;
     const { name } = req.body;
     const slug = createSlug(name);
@@ -81,16 +75,14 @@ app.put(
 app.put(
   '/piste',
   async (
-    req: Request<
-      {},
-      {},
-      {
+    req: {
+      body: {
         id?: number;
         resortId: number;
         name: string;
         path: Coordinate[];
-      }
-    >,
+      };
+    },
     res: Response,
   ) => {
     let { id } = req.body;
@@ -137,8 +129,8 @@ app.put(
 
 app.get(
   '/graph',
-  async (req: Request<{}, {}, {}, { pisteSlugs: string }>, res: Response) => {
-    const pisteSlugs = req.query.pisteSlugs.split(',');
+  async (req: { query: { pisteSlugs: string[] } }, res: Response) => {
+    const pisteSlugs = req.query.pisteSlugs;
 
     const graph = await getGraph(pisteSlugs);
     const graphSorted = pisteSlugs
